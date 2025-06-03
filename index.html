@@ -1,0 +1,228 @@
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 1rem;
+    background-color: #f9f9f9;
+  }
+
+  form {
+    max-width: 600px;
+    margin: auto;
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    font-weight: bold;
+  }
+
+  input,
+  select,
+  textarea {
+    margin-top: 0.5rem;
+    padding: 0.6rem;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+
+  button {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    background-color: #25d366;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #1da851;
+  }
+
+  @media (max-width: 600px) {
+    form {
+      padding: 1rem;
+    }
+  }
+</style>
+
+<form id="waForm">
+  <label>Nama Lengkap:
+    <input type="text" id="nama" required>
+  </label>
+  <label>Email:
+    <input type="email" id="email" required>
+  </label>
+  <label>No. WhatsApp:
+    <input type="text" id="nomor" required pattern="^(\\+62|62|08)\\d{8,12}$" title="Nomor harus dimulai dengan +62, 62, atau 08 dan terdiri dari 10-14 digit">
+  </label>
+  <label>Alamat Lengkap:
+    <input type="text" id="alamat" required>
+  </label>
+  <label>Tipe Hunian:
+    <select id="hunian">
+      <option>Rumah</option>
+      <option>Kos</option>
+      <option>Ruko</option>
+      <option>Apartemen</option>
+      <option>Kantor</option>
+    </select>
+  </label>
+  <label>Tipe Layanan:
+    <select id="layanan">
+      <option value="Reguler">Reguler</option>
+      <option value="Hemat">Hemat</option>
+    </select>
+  </label>
+  <label>Paket Internet:
+    <select id="paket"></select>
+  </label>
+  <label>Harga:
+    <input type="text" id="harga" readonly>
+  </label>
+  <label>Waktu Survey/Instalasi:
+    <input type="text" id="jadwal" placeholder="Contoh: Senin, 10.00 WIB">
+  </label>
+  <label>Pernah Pasang Sebelumnya?
+    <select id="pernah">
+      <option>Ya</option>
+      <option>Tidak</option>
+    </select>
+  </label>
+  <label>Catatan Tambahan:
+    <textarea id="catatan" rows="3"></textarea>
+  </label>
+  <button type="submit">Kirim via WhatsApp</button>
+</form>
+
+<script>
+  const layananSelect = document.getElementById('layanan');
+  const paketSelect = document.getElementById('paket');
+  const hargaInput = document.getElementById('harga');
+
+  const paketHarga = {
+    Reguler: {
+      'MSV Lite - 3 Mbps': 'Rp 100.000',
+      'MSV Family - 5 Mbps': 'Rp 150.000',
+      'MSV Biz - 10 Mbps': 'Rp 180.000',
+      'MSV Max - 20 Mbps': 'Rp 200.000',
+      'MSV Stream – 30 Mbps': 'Rp 280.000',
+      'MSV Pro – 50 Mbps': 'Rp 350.000'
+    },
+    Hemat: {
+      'MSV Max HEMAT – 20 Mbps': 'Rp165.000',
+      'MSV Stream HEMAT – 30 Mbps': 'Rp195.000',
+      'MSV Pro HEMAT – 50 Mbps': 'Rp225.000'
+    }
+  };
+
+  function updatePaketOptions() {
+    const selectedLayanan = layananSelect.value;
+    const options = paketHarga[selectedLayanan];
+
+    paketSelect.innerHTML = '';
+    for (let paket in options) {
+      const opt = document.createElement('option');
+      opt.value = paket;
+      opt.text = paket;
+      paketSelect.add(opt);
+    }
+    hargaInput.value = options[paketSelect.value];
+  }
+
+  layananSelect.addEventListener('change', updatePaketOptions);
+  paketSelect.addEventListener('change', () => {
+    const layanan = layananSelect.value;
+    const selected = paketSelect.value;
+    hargaInput.value = paketHarga[layanan][selected];
+  });
+
+  document.getElementById('waForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const email = document.getElementById('email');
+    if (!email.checkValidity()) {
+      alert("Masukkan alamat email yang valid.");
+      email.focus();
+      return;
+    }
+
+    const nomor = document.getElementById('nomor');
+    if (!nomor.checkValidity()) {
+      alert("Masukkan nomor WhatsApp yang valid (dimulai dengan 08, 62, atau +62 dan 10-14 digit).");
+      nomor.focus();
+      return;
+    }
+
+    const nama = document.getElementById('nama').value;
+    const alamat = document.getElementById('alamat').value;
+    const hunian = document.getElementById('hunian').value;
+    const layanan = document.getElementById('layanan').value;
+    const paket = document.getElementById('paket').value;
+    const harga = document.getElementById('harga').value;
+    const jadwal = document.getElementById('jadwal').value;
+    const pernah = document.getElementById('pernah').value;
+    const catatan = document.getElementById('catatan').value;
+
+    const pesan = `DUKODU-MSV | Halo, saya ingin mendaftar layanan internet fiber optic. Berikut data saya:%0A%0A` +
+      `1. Nama Lengkap: ${nama}%0A` +
+      `2. Email: ${email.value}%0A` +
+      `3. Nomor WhatsApp: ${nomor.value}%0A` +
+      `4. Alamat Lengkap: ${alamat}%0A` +
+      `5. Tipe Hunian: ${hunian}%0A` +
+      `6. Tipe Layanan: ${layanan}%0A` +
+      `7. Paket Internet: ${paket}%0A` +
+      `8. Harga: ${harga}%0A` +
+      `9. Waktu Survey/Instalasi: ${jadwal}%0A` +
+      `10. Pernah Pasang Internet sebelumnya? ${pernah}%0A` +
+      `11. Catatan Tambahan: ${catatan}`;
+
+    const noAdmin = "6281345001401";
+    const waUrl = `https://wa.me/${noAdmin}?text=${pesan}`;
+
+    fetch("https://script.google.com/macros/s/AKfycbwV5r-IfgRjgyYPwY3c4CtYbhu4MYYiJAUEyNm8ZQJcIK6fgcFOTe4dZFMwhuTAgIKM/exec", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        nama,
+        email: email.value,
+        nomor: nomor.value,
+        alamat,
+        hunian,
+        layanan,
+        paket,
+        harga,
+        jadwal,
+        pernah,
+        catatan,
+        log: navigator.userAgent + " | " + new Date().toLocaleString()
+      })
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Respon dari server tidak OK");
+      }
+      return res.text();
+    })
+    .then(text => {
+      console.log("Data berhasil disimpan ke Google Sheets:", text);
+    })
+    .catch(error => {
+      alert("Gagal menyimpan data ke Google Sheet. Silakan coba lagi nanti.");
+      console.error("Error saat kirim ke Google Sheet:", error);
+    });
+
+    window.open(waUrl, '_blank');
+  });
+
+  updatePaketOptions();
+</script>
